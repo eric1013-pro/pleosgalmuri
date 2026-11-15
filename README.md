@@ -103,19 +103,3 @@ flowchart LR
     SYN --> MOB
 ```
 
-| 설계 원칙 영역 | Pleos Connect 공식 기준 (`document.pleos.ai`) | 갈무리 (GALMURI) 적용 내역 |
-| :--- | :--- | :--- |
-| **운전자 주의 분산 방지** | 주행 중 영상 재생 차단, 키보드 입력 차단, 시선 이동 최소화 | `CarUxRestrictions` 리스너 연동으로 `D` 기어 시 정지 프리뷰 전환 및 `Text Field` 키보드 잠금(음성/프리셋 전용) |
-| **AAOS Alignment & 호환성** | 표준 속성은 AAOS API 우선, 특화 기능은 `checkXXXCapabilities()` 사전 검증 | 기어·속도·창문·온도는 `CarPropertyManager` 사용, 측후방 카메라/위치 SDK는 `isSupported()` 검증 후 폴백 지원 |
-| **멀티 윈도우 정책** | `17' Connect-S` 기준 `2:0 Landscape` 및 `1:1 Portrait` 분할 대응 | `Window bar` 컨트롤을 통한 `2:0` ↔ `1:1` 무중단 반응형 전환 및 중앙 `Handle` 탭 좌우 스왑 구현 |
-| **성능 및 오디오 포커스** | 비내비 앱 주행 중 `CPU < 5%`, `RAM < 400MB`, 오디오 포커스 준수 | 이벤트 드리븐 센서 구독으로 주행 중 `CPU 3.2%`, `RAM 248MB` 유지 및 음성 안내 시 `AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK` 적용 |
-| **보안 및 개인정보 보호** | 차량 공유 환경에서의 계정 격리 및 민감 데이터 암호화 | `Android Keystore` 기반 `AES-256-GCM` 암호화, 운전자 프로필 전환 시 세션 즉시 격리, 얼굴/번호판 온디바이스 블러링 |
-
----
-
-## 5. 로컬 실행 및 GitHub Pages 배포 방법
-
-1. **로컬 실행**: 별도의 빌드 과정 없이 `index.html` 파일을 Chrome, Edge, Safari 등 최신 웹 브라우저에서 바로 열면 모든 인터랙션이 즉시 작동합니다.
-2. **GitHub Pages 배포**:
-   - 새 GitHub Public 저장소를 생성한 뒤, 본 `galmuri-github` 폴더 안의 모든 파일과 폴더를 업로드합니다.
-   - 저장소의 **Settings > Pages > Build and deployment**에서 Branch를 `main` (`/(root)`)으로 설정하고 저장하면 `https://<계정명>.github.io/<저장소명>/` 주소로 심사위원이 즉시 접속할 수 있는 라이브 데모 링크가 생성됩니다.
