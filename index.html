@@ -1,0 +1,3096 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>갈무리 (GALMURI) — Pleos Connect Design System HMI</title>
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+    :root {
+      /* Official Pleos Connect System & Scale Color Tokens */
+      --bg-base: #0A0B0E;
+      --bg-surface: #12141A;
+      --bg-elevated: #181B24;
+      --bg-driving: #0D0F14;
+      --bg-field: #151821;
+      --bg-dropdown: #161922;
+      --bg-glass: rgba(18, 20, 26, 0.82);
+      --bg-glass-heavy: rgba(10, 11, 14, 0.95);
+      --border-hairline: rgba(255, 255, 255, 0.07);
+      --border-subtle: rgba(255, 255, 255, 0.14);
+      --border-focus: rgba(255, 255, 255, 0.32);
+      --text-primary: #F8FAFC;
+      --text-secondary: #94A3B8;
+      --text-muted: #64748B;
+      --accent-blue: #2563EB;
+      --accent-white: #FFFFFF;
+      --status-green: #10B981;
+      --status-red: #EF4444;
+
+      /* Official Pleos Connect Shadow Tokens (Level 1, Level 2, Level 3) */
+      --shadow-lv1: 0 6px 24px rgba(0, 0, 0, 0.08);
+      --shadow-lv2: 0 8px 32px rgba(0, 0, 0, 0.16), 0 2px 2px rgba(0, 0, 0, 0.08);
+      --shadow-lv3: 0 20px 40px rgba(0, 0, 0, 0.24), 0 2px 4px rgba(0, 0, 0, 0.20);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #040507;
+      color: var(--text-primary);
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      overflow: hidden;
+    }
+
+    svg {
+      display: block;
+      flex-shrink: 0;
+    }
+
+    button, input {
+      font-family: inherit;
+    }
+
+    /* ==========================================================================
+       PLEOS CONNECT 17-INCH (16:9) DISPLAY (Connect-S Standard)
+       ========================================================================== */
+    .pleos-connect-display {
+      width: 100%;
+      max-width: 1660px;
+      aspect-ratio: 16 / 9;
+      max-height: 96vh;
+      background-color: var(--bg-base);
+      border-radius: 24px;
+      border: 1.5px solid rgba(255, 255, 255, 0.12);
+      box-shadow: var(--shadow-lv3), 0 36px 90px rgba(0, 0, 0, 0.85);
+      display: grid;
+      grid-template-rows: 42px 1fr 62px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .shutter-flash {
+      position: absolute;
+      inset: 0;
+      background: #FFFFFF;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 900;
+      transition: opacity 0.22s ease-out;
+    }
+
+    .shutter-flash.flash {
+      opacity: 0.72;
+      transition: none;
+    }
+
+    /* ==========================================================================
+       PLEOS UI DESIGN SYSTEM COMPONENTS
+       (Basic Button, Toggle Button, Text Button, Icon Button, Spinner, Dropdown,
+        Segmented Menu, Indicator, Page Navigation, Text Field, System Notification,
+        Toast, Widgets, Window Bar, Scroll Bar, Controllers)
+       ========================================================================== */
+
+    /* 1. Basic Button (Root + Prefix Icon + Label + Suffix Icon + Pressed/Disabled/Loading States) */
+    .pleos-basic-btn {
+      background: var(--accent-white);
+      color: var(--bg-base);
+      border: 1px solid var(--accent-white);
+      height: 42px;
+      padding: 0 15px;
+      border-radius: 9px;
+      font-size: 12.5px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      cursor: pointer;
+      transition: transform 0.08s ease, opacity 0.15s ease, background 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .pleos-basic-btn:hover {
+      opacity: 0.92;
+    }
+
+    .pleos-basic-btn:active,
+    .pleos-basic-btn.pressed {
+      transform: scale(0.97);
+    }
+
+    .pleos-basic-btn.secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-primary);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .pleos-basic-btn.secondary:hover {
+      background: rgba(255, 255, 255, 0.13);
+    }
+
+    /* 2. Spinner Component (Linear / Tension Circular Stroke) */
+    .pleos-spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(10, 11, 14, 0.25);
+      border-top-color: #0A0B0E;
+      border-radius: 50%;
+      animation: pleosSpin 0.65s linear infinite;
+      display: none;
+    }
+
+    .pleos-basic-btn.loading .pleos-spinner {
+      display: block;
+    }
+
+    .pleos-basic-btn.loading .btn-prefix-icon {
+      display: none;
+    }
+
+    @keyframes pleosSpin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* 3. Toggle Button (On/Off Switchable Button with Toggled State) */
+    .pleos-toggle-btn {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      color: var(--text-secondary);
+      height: 30px;
+      padding: 0 11px;
+      border-radius: 7px;
+      font-size: 11.5px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .pleos-toggle-btn .toggle-led {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      transition: background 0.15s;
+    }
+
+    .pleos-toggle-btn.toggled {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.24);
+      color: var(--text-primary);
+    }
+
+    .pleos-toggle-btn.toggled .toggle-led {
+      background: var(--status-green);
+    }
+
+    /* 4. Text Button (Link Action with Prefix/Suffix Icon) */
+    .pleos-text-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 6px;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .pleos-text-btn:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* 5. Icon Button (Styles: Basic, Plain, Circle | Sizes: Large, Medium, Small) */
+    .pleos-icon-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid var(--border-hairline);
+      color: var(--text-primary);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .pleos-icon-btn:hover {
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    .pleos-icon-btn:active {
+      transform: scale(0.95);
+    }
+
+    .pleos-icon-btn.circle {
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+    }
+
+    .pleos-icon-btn.plain {
+      background: transparent;
+      border-color: transparent;
+      color: var(--text-secondary);
+    }
+
+    .pleos-icon-btn.plain:hover {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-primary);
+    }
+
+    /* 6. Dropdown Component (Root + Prefix + Label + Suffix + Opened Container) */
+    .pleos-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .pleos-dropdown-trigger {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      color: var(--text-primary);
+      height: 30px;
+      padding: 0 10px;
+      border-radius: 7px;
+      font-size: 11.5px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+
+    .pleos-dropdown-trigger:hover,
+    .pleos-dropdown.opened .pleos-dropdown-trigger {
+      border-color: var(--border-subtle);
+    }
+
+    .pleos-dropdown-menu {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      min-width: 210px;
+      background: var(--bg-dropdown);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      box-shadow: var(--shadow-lv3);
+      padding: 5px;
+      display: none;
+      flex-direction: column;
+      gap: 2px;
+      z-index: 120;
+    }
+
+    .pleos-dropdown.opened .pleos-dropdown-menu {
+      display: flex;
+    }
+
+    .dropdown-option {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+
+    .dropdown-option:hover,
+    .dropdown-option.selected {
+      background: rgba(255, 255, 255, 0.09);
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    /* 7. Indicator & Page Navigation Component (Root + Prev + Present Value + Next) */
+    .pleos-indicator-nav {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-radius: 8px;
+      height: 30px;
+      padding: 0 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    /* 8. Text Field Component (Supports Focused, Read Only in Driving DO, Editable in Parking) */
+    .pleos-textfield-bar {
+      background: var(--bg-field);
+      border: 1px solid var(--border-hairline);
+      border-radius: 9px;
+      height: 36px;
+      padding: 0 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      transition: border-color 0.15s;
+    }
+
+    .pleos-textfield-bar:focus-within {
+      border-color: var(--border-focus);
+    }
+
+    .pleos-textfield-bar.readonly-driving {
+      background: rgba(21, 24, 33, 0.6);
+      border-style: dashed;
+    }
+
+    .pleos-textfield-input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-primary);
+      font-size: 12px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .pleos-textfield-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .preset-chip {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-hairline);
+      color: #CBD5E1;
+      font-size: 10.5px;
+      font-weight: 500;
+      padding: 3px 7px;
+      border-radius: 5px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .preset-chip:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #FFFFFF;
+    }
+
+    /* 9. Official Pleos System Notification (Root + Imagery + Header + Action) */
+    .pleos-sys-notification {
+      position: absolute;
+      top: 54px;
+      right: 18px;
+      width: 390px;
+      background: rgba(18, 20, 26, 0.96);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      box-shadow: var(--shadow-lv3);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+      z-index: 200;
+      transform: translateY(-16px);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .pleos-sys-notification.active {
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .sys-notif-top {
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .sys-notif-imagery {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      background-size: cover;
+      background-position: center;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .sys-notif-header h4 {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+
+    .sys-notif-header p {
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+      line-height: 1.35;
+    }
+
+    .sys-notif-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    /* 10. Official Pleos Toast Component
+           Spec: Side padding 24px, Bottom padding 24px, Max-width 792px, Message max-width 712px */
+    .pleos-app-toast {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(14px);
+      width: max-content;
+      max-width: 792px;
+      background: rgba(18, 20, 26, 0.96);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-lv3);
+      border-radius: 12px;
+      padding: 13px 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.2s ease;
+      z-index: 300;
+    }
+
+    .pleos-app-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .pleos-toast-message {
+      max-width: 712px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ==========================================================================
+       1. STATUS BAR (Top System UI Layer)
+       ========================================================================== */
+    .pleos-status-bar {
+      background-color: var(--bg-base);
+      border-bottom: 1px solid var(--border-hairline);
+      display: grid;
+      grid-template-columns: 330px 1fr;
+      align-items: center;
+      padding: 0 20px;
+      z-index: 60;
+    }
+
+    .sb-driving-left {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-right: 18px;
+      border-right: 1px solid var(--border-hairline);
+    }
+
+    .prnd-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .prnd-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 12.5px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .prnd-btn.active {
+      background: var(--accent-white);
+      color: var(--bg-base);
+    }
+
+    .sb-range-cluster {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .sb-system-right {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-left: 20px;
+    }
+
+    .sp0-zone {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-right: 40px;
+    }
+
+    .gleo-voice-chip {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      height: 27px;
+      padding: 0 11px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+
+    .privacy-mic-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--status-green);
+    }
+
+    .sp1-zone {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sb-action-pill {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-hairline);
+      color: var(--text-primary);
+      height: 27px;
+      padding: 0 10px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .sb-action-pill:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .sb-action-pill.active {
+      background: var(--accent-white);
+      color: var(--bg-base);
+      border-color: var(--accent-white);
+    }
+
+    .sb-action-pill.primary {
+      background: var(--accent-blue);
+      border-color: rgba(255, 255, 255, 0.15);
+      color: #FFFFFF;
+    }
+
+    .sb-static-icons {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding-left: 8px;
+      border-left: 1px solid var(--border-hairline);
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* ==========================================================================
+       CENTER STAGE: 2. DRIVING VIEW (Left) + 4. APPLICATION WINDOW (Right)
+       ========================================================================== */
+    .pleos-main-stage {
+      display: grid;
+      grid-template-columns: 330px 1fr;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* 2. DRIVING VIEW (With Official Pleos Widgets Component at Bottom) */
+    .pleos-driving-view {
+      background-color: var(--bg-driving);
+      border-right: 1px solid var(--border-hairline);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 16px 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .dv-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      z-index: 4;
+    }
+
+    .dv-turn-bar {
+      width: 32px;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--status-green);
+      margin-bottom: 6px;
+    }
+
+    .dv-speed-val {
+      font-size: 52px;
+      font-weight: 700;
+      line-height: 0.92;
+      letter-spacing: -0.04em;
+      color: var(--text-primary);
+    }
+
+    .dv-speed-unit {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .dv-signs-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .cruise-set-pill {
+      background: rgba(37, 99, 235, 0.2);
+      border: 1px solid rgba(59, 130, 246, 0.5);
+      color: #93C5FD;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 6px;
+    }
+
+    .limit-circle-sign {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 3px solid var(--status-red);
+      background: #FFFFFF;
+      color: #0A0B0E;
+      font-size: 13px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .limit-dist-sub {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .dv-adas-canvas {
+      flex: 1;
+      position: relative;
+      margin: 2px -18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* Official Pleos Widgets Component Anatomy:
+       1. Root, 2. Handle, 3. Pagination, 4. Title/Action Area, 5. Information Area */
+    .pleos-widget-root {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-radius: 14px;
+      padding: 8px 12px 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      box-shadow: var(--shadow-lv1);
+      z-index: 5;
+    }
+
+    .widget-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .widget-handle {
+      width: 28px;
+      height: 3px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.18);
+      margin: 0 auto;
+    }
+
+    .widget-pagination {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .w-page-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      cursor: pointer;
+    }
+
+    .w-page-dot.active {
+      width: 12px;
+      border-radius: 4px;
+      background: #FFFFFF;
+    }
+
+    .widget-title-action {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .widget-info-area {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .dv-odometer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    /* ==========================================================================
+       4. APPLICATION WINDOW CONTAINER (Supports 2:0 Landscape & 1:1 Portrait Split)
+       ========================================================================== */
+    .pleos-app-container {
+      background-color: #07080B;
+      padding: 10px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .pleos-app-container.split-1-1 {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .pleos-app-container.split-1-1.swapped .primary-navi-win {
+      order: 2;
+    }
+
+    .pleos-app-container.split-1-1.swapped .secondary-galmuri-win {
+      order: 1;
+    }
+
+    .pleos-window-card {
+      background-color: var(--bg-base);
+      border: 1px solid var(--border-hairline);
+      border-radius: 18px;
+      box-shadow: var(--shadow-lv2);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Official Pleos Window Bar Component (Root + Handle + Control) */
+    .pleos-window-bar {
+      height: 48px;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--border-hairline);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: var(--bg-base);
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .window-bar-handle {
+      position: absolute;
+      top: 5px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 38px;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.18);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .window-bar-handle:hover {
+      background: rgba(255, 255, 255, 0.45);
+    }
+
+    .window-bar-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .primary-navi-win {
+      display: none;
+    }
+
+    .pleos-app-container.split-1-1 .primary-navi-win {
+      display: flex;
+    }
+
+    /* Official Pleos Segmented Menu (Tabs) */
+    .pleos-segmented-menu {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      background: var(--bg-surface);
+      padding: 3px;
+      border-radius: 9px;
+      border: 1px solid var(--border-hairline);
+    }
+
+    .seg-tab {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      padding: 5px 11px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .seg-tab:hover {
+      color: var(--text-primary);
+    }
+
+    .seg-tab.active {
+      background: rgba(255, 255, 255, 0.14);
+      color: var(--text-primary);
+    }
+
+    /* Galmuri Stage */
+    .galmuri-stage {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .g-view {
+      display: none;
+      width: 100%;
+      height: 100%;
+      padding: 14px 16px;
+      gap: 14px;
+      overflow: hidden;
+    }
+
+    .g-view.active {
+      display: grid;
+    }
+
+    /* VIEW 1: SCENIC CAPTURE + LIVE ROUTE PHOTO MAP & FEED */
+    #gview-live.active {
+      grid-template-columns: 1.32fr 1fr;
+    }
+
+    .pleos-app-container.split-1-1 #gview-live.active {
+      grid-template-columns: 1fr;
+      grid-template-rows: 1.12fr 0.88fr;
+    }
+
+    .camera-card {
+      position: relative;
+      border-radius: 15px;
+      overflow: hidden;
+      background-color: #08090C;
+      border: 1px solid var(--border-hairline);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 15px;
+    }
+
+    .cam-photo-bg {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      transition: background-image 0.5s ease;
+      z-index: 1;
+    }
+
+    .cam-vignette {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at center, rgba(10, 11, 14, 0.04) 25%, rgba(10, 11, 14, 0.66) 100%),
+        linear-gradient(180deg, rgba(10, 11, 14, 0.72) 0%, rgba(10, 11, 14, 0) 30%, rgba(10, 11, 14, 0) 56%, rgba(10, 11, 14, 0.92) 100%);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .cam-viewfinder {
+      position: absolute;
+      inset: 15px;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .vf-b {
+      position: absolute;
+      width: 15px;
+      height: 15px;
+      border-color: rgba(255, 255, 255, 0.28);
+      border-style: solid;
+    }
+
+    .vf-1 { top: 44px; left: 6px; border-width: 1.5px 0 0 1.5px; }
+    .vf-2 { top: 44px; right: 6px; border-width: 1.5px 1.5px 0 0; }
+    .vf-3 { bottom: 92px; left: 6px; border-width: 0 0 1.5px 1.5px; }
+    .vf-4 { bottom: 92px; right: 6px; border-width: 0 1.5px 1.5px 0; }
+
+    .cam-top-bar {
+      position: relative;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .cam-top-flex {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .hud-single-pill {
+      background: rgba(10, 11, 14, 0.74);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 6px 11px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 11.5px;
+      font-weight: 500;
+      color: #E2E8F0;
+    }
+
+    .rec-tag {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #FFFFFF;
+      padding-right: 8px;
+      border-right: 1px solid rgba(255, 255, 255, 0.14);
+    }
+
+    .rec-red {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--status-red);
+    }
+
+    .hud-btn-text {
+      background: none;
+      border: none;
+      color: #E2E8F0;
+      font-size: 11.5px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .scenic-guide-strip {
+      align-self: flex-start;
+      background: rgba(18, 20, 26, 0.78);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 8px;
+      padding: 6px 11px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #E2E8F0;
+    }
+
+    /* Bottom Glass Media & Capture Controls + Pleos Controller Progress Bar */
+    .cam-bottom-bar {
+      position: relative;
+      z-index: 5;
+      background: rgba(18, 20, 26, 0.8);
+      backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 13px;
+      padding: 10px 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .cam-bottom-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .bgm-now {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .bgm-thumb {
+      width: 38px;
+      height: 38px;
+      border-radius: 7px;
+      background-size: cover;
+      background-position: center;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      flex-shrink: 0;
+    }
+
+    .bgm-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tag-mono {
+      font-size: 10px;
+      font-weight: 600;
+      color: #CBD5E1;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 2px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .bgm-sub {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    /* Right Side of View 1: Mini Route Photo Map + Moments Feed */
+    .right-route-feed-col {
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+      overflow: hidden;
+    }
+
+    .mini-route-photo-map {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-radius: 15px;
+      padding: 11px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      height: 170px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .mrpm-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 4;
+    }
+
+    .mrpm-header h3 {
+      font-size: 13.5px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+    }
+
+    .mrpm-canvas-wrap {
+      flex: 1;
+      position: relative;
+      border-radius: 10px;
+      background: #0C0F17;
+      border: 1px solid var(--border-hairline);
+      overflow: hidden;
+    }
+
+    .route-photo-pin {
+      position: absolute;
+      transform: translate(-50%, -100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      z-index: 6;
+      transition: transform 0.18s ease;
+    }
+
+    .route-photo-pin:hover {
+      transform: translate(-50%, -105%) scale(1.08);
+      z-index: 10;
+    }
+
+    .pin-photo-frame {
+      width: 42px;
+      height: 32px;
+      border-radius: 6px;
+      background-size: cover;
+      background-position: center;
+      border: 2px solid #FFFFFF;
+      box-shadow: var(--shadow-lv2);
+    }
+
+    .route-photo-pin.active-pin .pin-photo-frame {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.4);
+    }
+
+    .pin-stem { width: 2px; height: 6px; background: #FFFFFF; }
+    .pin-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent-blue); border: 1.5px solid #FFFFFF; }
+    .pin-caption {
+      margin-top: 2px;
+      font-size: 9px;
+      font-weight: 600;
+      color: #E2E8F0;
+      background: rgba(10, 11, 14, 0.85);
+      padding: 1px 5px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .feed-card-box {
+      flex: 1;
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-radius: 15px;
+      padding: 13px 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      overflow: hidden;
+    }
+
+    .moments-scroll-area {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-right: 4px;
+    }
+
+    .moments-scroll-area::-webkit-scrollbar { width: 4px; }
+    .moments-scroll-area::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.16); border-radius: 4px; }
+
+    .m-card {
+      background-color: var(--bg-base);
+      border: 1px solid var(--border-hairline);
+      border-radius: 11px;
+      padding: 9px 10px;
+      display: grid;
+      grid-template-columns: 74px 1fr;
+      gap: 11px;
+      align-items: center;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+
+    .m-card:hover { border-color: var(--border-subtle); }
+
+    .m-thumb {
+      width: 74px;
+      height: 58px;
+      border-radius: 8px;
+      background-size: cover;
+      background-position: center;
+      border: 1px solid var(--border-hairline);
+    }
+
+    .m-info {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 0;
+    }
+
+    .m-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .m-title {
+      font-size: 12.5px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .m-time { font-size: 10.5px; color: var(--text-muted); flex-shrink: 0; }
+    .m-quote {
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .m-badges { display: flex; align-items: center; gap: 5px; margin-top: 2px; }
+    .badge-neutral {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-hairline);
+      color: #E2E8F0;
+      font-size: 10px;
+      font-weight: 500;
+      padding: 2px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* VIEW 2: FULL VEHICLE ROUTE PHOTO MAP & JOURNEY ARCHIVE */
+    #gview-diary.active {
+      grid-template-columns: 1.36fr 1fr;
+    }
+
+    .full-route-map-panel {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-radius: 15px;
+      padding: 15px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+      overflow: hidden;
+    }
+
+    .interactive-route-stage {
+      flex: 1;
+      position: relative;
+      border-radius: 12px;
+      background-color: #0B0E16;
+      border: 1px solid var(--border-hairline);
+      overflow: hidden;
+    }
+
+    .large-route-photo-pin {
+      position: absolute;
+      transform: translate(-50%, -100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      z-index: 8;
+      transition: transform 0.2s ease;
+    }
+
+    .large-route-photo-pin:hover,
+    .large-route-photo-pin.selected {
+      transform: translate(-50%, -106%) scale(1.08);
+      z-index: 15;
+    }
+
+    .l-pin-card {
+      background: rgba(18, 20, 26, 0.94);
+      border: 1.5px solid rgba(255, 255, 255, 0.45);
+      border-radius: 9px;
+      padding: 4px;
+      box-shadow: var(--shadow-lv2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .large-route-photo-pin.selected .l-pin-card {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.4), var(--shadow-lv2);
+    }
+
+    .l-pin-img {
+      width: 64px;
+      height: 44px;
+      border-radius: 6px;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .l-pin-label {
+      font-size: 9.5px;
+      font-weight: 700;
+      color: var(--text-primary);
+      padding: 1px 4px;
+      white-space: nowrap;
+    }
+
+    .selected-spot-detail {
+      background: var(--bg-base);
+      border: 1px solid var(--border-hairline);
+      border-radius: 11px;
+      padding: 10px 12px;
+      display: grid;
+      grid-template-columns: 82px 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .ssd-photo {
+      width: 82px;
+      height: 60px;
+      border-radius: 8px;
+      background-size: cover;
+      background-position: center;
+      border: 1px solid var(--border-subtle);
+    }
+
+    /* VIEW 3: DEJA-VU ROUTE */
+    #gview-dejavu.active {
+      grid-template-columns: 1.25fr 1fr;
+    }
+
+    .dejavu-hero {
+      position: relative;
+      border-radius: 15px;
+      overflow: hidden;
+      border: 1px solid var(--border-hairline);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background-image:
+        linear-gradient(180deg, rgba(10, 11, 14, 0.82) 0%, rgba(10, 11, 14, 0.45) 45%, rgba(10, 11, 14, 0.94) 100%),
+        url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1400&q=80');
+      background-size: cover;
+      background-position: center;
+    }
+
+    .dejavu-overlay-card {
+      background: rgba(18, 20, 26, 0.88);
+      backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* ==========================================================================
+       3. GNB - GLOBAL NAVIGATION BAR (Official 11-Slot Layout + 2s OSD)
+       ========================================================================== */
+    .pleos-gnb-bar {
+      background-color: var(--bg-base);
+      border-top: 1px solid var(--border-hairline);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 60;
+    }
+
+    .gnb-side-group { display: flex; align-items: center; gap: 10px; }
+
+    .gnb-slot-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .gnb-slot-btn:hover {
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      border-color: var(--border-hairline);
+    }
+
+    .gnb-climate-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .climate-val-col { display: flex; flex-direction: column; align-items: center; line-height: 1.05; }
+    .climate-temp-num { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+    .climate-auto-sub { font-size: 9px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em; }
+
+    .gnb-center-apps { display: flex; align-items: center; gap: 8px; }
+
+    .gnb-app-tile {
+      width: 42px;
+      height: 42px;
+      border-radius: 11px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .gnb-app-tile:hover { color: var(--text-primary); border-color: var(--border-subtle); }
+    .gnb-app-tile.fixed-navi { background: rgba(37, 99, 235, 0.22); border-color: rgba(59, 130, 246, 0.45); color: #93C5FD; }
+    .gnb-app-tile.running { background: #1E2434; color: var(--text-primary); border-color: rgba(255, 255, 255, 0.26); }
+    .gnb-app-tile.running::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      width: 14px;
+      height: 2.5px;
+      border-radius: 2px;
+      background: #FFFFFF;
+    }
+
+    /* Official Pleos OSD (On-Screen Display — Auto-dismisses after 2.0 seconds) */
+    .pleos-osd-banner {
+      position: absolute;
+      bottom: 70px;
+      left: 165px;
+      transform: translateX(-50%) translateY(10px);
+      background: rgba(18, 20, 26, 0.96);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-lv3);
+      color: var(--text-primary);
+      padding: 9px 14px;
+      border-radius: 10px;
+      font-size: 11.5px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.16s ease;
+      z-index: 950;
+    }
+
+    .pleos-osd-banner.visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* System Slide-Over Drawers */
+    .sys-drawer {
+      position: absolute;
+      top: 42px;
+      bottom: 62px;
+      right: 0;
+      width: 410px;
+      background: var(--bg-glass-heavy);
+      backdrop-filter: blur(28px);
+      border-left: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-lv3);
+      transform: translateX(100%);
+      transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+      z-index: 85;
+      display: flex;
+      flex-direction: column;
+      padding: 18px 20px;
+      gap: 12px;
+    }
+
+    .sys-drawer.open { transform: translateX(0); }
+    .sys-drawer-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-hairline);
+    }
+    .sys-drawer-head h3 { font-size: 15.5px; font-weight: 700; letter-spacing: -0.02em; }
+
+    .sdk-metrics-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .sdk-m-box { background: var(--bg-surface); border: 1px solid var(--border-hairline); border-radius: 8px; padding: 8px; text-align: center; }
+    .sdk-m-box .v { font-size: 13px; font-weight: 700; color: var(--status-green); }
+    .sdk-m-box .l { font-size: 10px; color: var(--text-secondary); margin-top: 2px; }
+
+    .sdk-log-box {
+      flex: 1;
+      background: #060709;
+      border: 1px solid var(--border-hairline);
+      border-radius: 10px;
+      padding: 11px;
+      font-family: 'Consolas', monospace;
+      font-size: 11px;
+      color: #CBD5E1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .log-row { padding: 5px 7px; background: rgba(255, 255, 255, 0.03); border-left: 2px solid var(--accent-blue); line-height: 1.4; }
+  </style>
+</head>
+<body>
+
+  <!-- PLEOS CONNECT 17-INCH (16:9) DISPLAY (Connect-S Standard) -->
+  <main class="pleos-connect-display">
+    <div class="shutter-flash" id="shutterFlash"></div>
+
+    <!-- ======================================================================
+         1. STATUS BAR (SP0 Static/Dynamic + 40dp Safe Bounds + SP1 Static/Dynamic)
+         ====================================================================== -->
+    <header class="pleos-status-bar">
+      <div class="sb-driving-left">
+        <div class="prnd-group" title="기어 상태 전환 (Parking vs Driving 주행 규제 연동)">
+          <button class="prnd-btn" id="gearP" onclick="setGearState('P')">P</button>
+          <button class="prnd-btn" id="gearR" onclick="setGearState('R')">R</button>
+          <button class="prnd-btn" id="gearN" onclick="setGearState('N')">N</button>
+          <button class="prnd-btn active" id="gearD" onclick="setGearState('D')">D</button>
+        </div>
+
+        <div class="sb-range-cluster">
+          <span>287km</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+            <rect x="2" y="7" width="16" height="10" rx="2" ry="2"></rect>
+            <line x1="22" y1="11" x2="22" y2="13"></line>
+          </svg>
+        </div>
+      </div>
+
+      <div class="sb-system-right">
+        <div class="sp0-zone">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="color:var(--text-secondary);">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          <button class="gleo-voice-chip" onclick="triggerVoiceMoment()">
+            <span class="privacy-mic-dot"></span>
+            <span>Gleo AI · "지금 풍경 갈무리해 줘"</span>
+          </button>
+          <span style="font-size:11.5px; color:var(--text-secondary);">4인 가족 탑승 중</span>
+        </div>
+
+        <div class="sp1-zone">
+          <button class="sb-action-pill primary" onclick="runAutoScenarioDemo()">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <span>시나리오 시연</span>
+          </button>
+
+          <button class="sb-action-pill" onclick="showSystemNotification()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            <span>System Notification</span>
+          </button>
+
+          <button class="sb-action-pill" id="btnMobileDrawer" onclick="toggleDrawer('mobile')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+              <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+              <line x1="12" y1="18" x2="12.01" y2="18"></line>
+            </svg>
+            <span>Mobile Sync</span>
+          </button>
+
+          <button class="sb-action-pill" id="btnSdkDrawer" onclick="toggleDrawer('sdk')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+              <polyline points="16 18 22 12 16 6"></polyline>
+              <polyline points="8 6 2 12 8 18"></polyline>
+            </svg>
+            <span>SDK Console</span>
+          </button>
+
+          <div class="sb-static-icons">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span>5G</span>
+            <span style="color:var(--text-primary);">16:42</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ======================================================================
+         CENTER STAGE: 2. DRIVING VIEW (Left) + 4. APPLICATION WINDOW (Right)
+         ====================================================================== -->
+    <div class="pleos-main-stage">
+
+      <!-- 2. DRIVING VIEW (With Official Pleos Widgets Component at Bottom) -->
+      <section class="pleos-driving-view">
+        <div class="dv-header">
+          <div>
+            <div class="dv-turn-bar"></div>
+            <div class="dv-speed-val" id="dvSpeedVal">78</div>
+            <div class="dv-speed-unit">km/h</div>
+
+            <div class="dv-signs-stack">
+              <span class="cruise-set-pill">80</span>
+              <div class="limit-circle-sign">80</div>
+              <span class="limit-dist-sub">400m</span>
+            </div>
+          </div>
+
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+            <span class="tag-mono" id="dvStateTag">AUTO HOLD</span>
+            <span style="font-size:11px; color:var(--text-secondary);" id="dvWeatherTag">외기 19.0°C · 맑음</span>
+          </div>
+        </div>
+
+        <!-- 3D ADAS Visualization -->
+        <div class="dv-adas-canvas">
+          <svg width="100%" height="100%" viewBox="0 0 300 280" fill="none">
+            <defs>
+              <linearGradient id="laneCarpet" x1="150" y1="45" x2="150" y2="255" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#4F46E5" stop-opacity="0.08" />
+                <stop offset="50%" stop-color="#6366F1" stop-opacity="0.38" />
+                <stop offset="100%" stop-color="#3B82F6" stop-opacity="0.08" />
+              </linearGradient>
+            </defs>
+            <line x1="88" y1="20" x2="8" y2="275" stroke="rgba(255,255,255,0.12)" stroke-width="1.5" />
+            <line x1="130" y1="20" x2="92" y2="275" stroke="rgba(255,255,255,0.22)" stroke-width="1.5" stroke-dasharray="6 6" />
+            <line x1="170" y1="20" x2="208" y2="275" stroke="rgba(255,255,255,0.22)" stroke-width="1.5" stroke-dasharray="6 6" />
+            <line x1="212" y1="20" x2="292" y2="275" stroke="rgba(255,255,255,0.12)" stroke-width="1.5" />
+
+            <polygon points="132,65 168,65 198,255 102,255" fill="url(#laneCarpet)" />
+
+            <g transform="translate(134, 62)">
+              <rect x="0" y="0" width="32" height="22" rx="5" fill="#273045" stroke="rgba(255,255,255,0.35)" stroke-width="1.2" />
+              <rect x="4" y="4" width="24" height="8" rx="2" fill="#111622" />
+            </g>
+
+            <g transform="translate(185, 48)">
+              <rect x="0" y="0" width="38" height="52" rx="5" fill="#1E2433" stroke="rgba(255,255,255,0.22)" stroke-width="1.2" />
+              <rect x="4" y="36" width="30" height="12" rx="2" fill="#2A3246" />
+            </g>
+
+            <g transform="translate(198, 138)">
+              <rect x="0" y="0" width="34" height="24" rx="5" fill="#232A3B" stroke="rgba(255,255,255,0.25)" stroke-width="1.2" />
+            </g>
+
+            <g transform="translate(122, 182)">
+              <ellipse cx="28" cy="62" rx="28" ry="8" fill="rgba(0,0,0,0.65)" />
+              <rect x="4" y="0" width="48" height="64" rx="13" fill="#E2E8F0" stroke="#FFFFFF" stroke-width="1.5" />
+              <rect x="10" y="12" width="36" height="30" rx="6" fill="#151924" />
+              <rect x="8" y="57" width="40" height="3.5" rx="1.5" fill="#EF4444" />
+            </g>
+          </svg>
+        </div>
+
+        <!-- Official Pleos Widgets Component (1. Root, 2. Handle, 3. Pagination, 4. Title/Action, 5. Info Area) -->
+        <div>
+          <div class="pleos-widget-root">
+            <div class="widget-top-row">
+              <div style="width:32px;"></div>
+              <div class="widget-handle"></div>
+              <div class="widget-pagination">
+                <span class="w-page-dot active" onclick="setDrivingWidget(0)"></span>
+                <span class="w-page-dot" onclick="setDrivingWidget(1)"></span>
+                <span class="w-page-dot" onclick="setDrivingWidget(2)"></span>
+              </div>
+            </div>
+            <div class="widget-title-action">
+              <span id="widgetTitleText">주행 환경 &amp; 창문 센서</span>
+              <button class="pleos-text-btn" style="padding:0; font-size:11px;" onclick="cycleDrivingWidget()">다음 위젯 &gt;</button>
+            </div>
+            <div class="widget-info-area">
+              <span id="widgetMainValue">바닷바람 환기 열림 · 21.5°C</span>
+              <button class="sb-action-pill" onclick="toggleWindowSensor()">상태 전환</button>
+            </div>
+          </div>
+
+          <div class="dv-odometer-row">
+            <span>16,549 km</span>
+            <span>동해 7번 국도 해안도로</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. APPLICATION WINDOW AREA (Supports 2:0 Landscape & 1:1 Portrait Split) -->
+      <section class="pleos-app-container" id="pleosAppContainer">
+
+        <!-- Official Pleos System Notification Component (Root + Imagery + Header + Action) -->
+        <div class="pleos-sys-notification" id="pleosSysNotification">
+          <div class="sys-notif-top">
+            <div class="sys-notif-imagery" style="background-image:url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=200&q=80');"></div>
+            <div class="sys-notif-header">
+              <h4>전방 300m · 2025년 가족 갈무리 지점 진입</h4>
+              <p>강릉 헌화로 해안도로에서 갈무리한 노을 사진과 당시 재생곡 [노을 지는 해안선]이 있습니다.</p>
+            </div>
+          </div>
+          <div class="sys-notif-actions">
+            <button class="pleos-basic-btn" style="height:34px; font-size:11.5px;" onclick="triggerDejaVuReplay(); hideSystemNotification();">
+              <span>그때 그 노래 재생</span>
+            </button>
+            <button class="pleos-basic-btn secondary" style="height:34px; font-size:11.5px;" onclick="hideSystemNotification()">
+              <span>닫기</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- PRIMARY WINDOW: PLEOS NAVIGATION (Shown when 1:1 Split Mode is Active) -->
+        <article class="pleos-window-card primary-navi-win">
+          <div class="pleos-window-bar">
+            <div class="window-bar-handle" onclick="swapSplitWindows()" title="Window Bar 탭: 좌우 앱 위치 변경"></div>
+            <div style="font-size:13.5px; font-weight:700; display:flex; align-items:center; gap:7px;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+              </svg>
+              <span>Pleos Navigation · 동해 7번 국도</span>
+            </div>
+            <div class="window-bar-controls">
+              <button class="pleos-icon-btn circle" onclick="swapSplitWindows()" title="좌우 윈도우 위치 교체">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+              </button>
+              <button class="pleos-icon-btn circle" onclick="toggleWindowPolicy()" title="2:0 전체 창 확장">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline></svg>
+              </button>
+            </div>
+          </div>
+
+          <div style="flex:1; position:relative; background:#0B0E16; overflow:hidden;">
+            <svg width="100%" height="100%" viewBox="0 0 500 560" preserveAspectRatio="none">
+              <polygon points="340,0 500,0 500,560 280,560 315,360 300,180" fill="#081C30" />
+              <path d="M 60 520 Q 170 430 220 340 T 285 180 T 315 50" stroke="rgba(37,99,235,0.28)" stroke-width="14" stroke-linecap="round" fill="none" />
+              <path d="M 60 520 Q 170 430 220 340 T 285 180 T 315 50" stroke="#2563EB" stroke-width="5" stroke-linecap="round" fill="none" />
+            </svg>
+            <div id="splitMapPinsLayer" style="position:absolute; inset:0;"></div>
+
+            <div style="position:absolute; top:14px; left:14px; background:rgba(18,20,26,0.92); backdrop-filter:blur(20px); border:1px solid var(--border-subtle); border-radius:12px; padding:12px 14px; display:flex; align-items:center; gap:12px; z-index:12;">
+              <div style="width:36px; height:36px; border-radius:8px; background:var(--accent-blue); display:flex; align-items:center; justify-content:center;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </div>
+              <div>
+                <div style="font-size:15.5px; font-weight:700;">250m 앞 해안도로 진입</div>
+                <div style="font-size:11.5px; color:var(--text-secondary);">양양 7번 국도 해안절경 구간</div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- SECONDARY / LANDSCAPE APPLICATION WINDOW: GALMURI (갈무리) -->
+        <article class="pleos-window-card secondary-galmuri-win" style="flex:1;">
+          <!-- Official Pleos Window Bar Component (Root + Handle + Control) -->
+          <div class="pleos-window-bar">
+            <div class="window-bar-handle" onclick="swapSplitWindows()" title="Window Bar Handle: 탭하여 분할 창 위치 교체"></div>
+
+            <div style="display:flex; align-items:center; gap:12px;">
+              <div style="display:flex; align-items:center; gap:7px; font-size:15px; font-weight:700; letter-spacing:-0.02em;">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                  <circle cx="12" cy="13" r="4"></circle>
+                </svg>
+                <span>갈무리 (GALMURI)</span>
+              </div>
+
+              <!-- Official Pleos Segmented Menu (Tabs) -->
+              <div class="pleos-segmented-menu">
+                <button class="seg-tab active" data-view="live" onclick="switchView('live')">풍경·선율 갈무리</button>
+                <button class="seg-tab" data-view="diary" onclick="switchView('diary')">전체 경로 포토맵 · 일기장</button>
+                <button class="seg-tab" data-view="dejavu" onclick="switchView('dejavu')">기억 마중</button>
+              </div>
+            </div>
+
+            <!-- Right Controls: Toggle Button + Dropdown + Window Policy Controls -->
+            <div style="display:flex; align-items:center; gap:8px;">
+              <!-- Official Pleos Toggle Button Component -->
+              <button class="pleos-toggle-btn toggled" id="btnAutoWindowCapture" onclick="toggleAutoCaptureOption(this)">
+                <span class="toggle-led"></span>
+                <span>창문 개방 자동 갈무리</span>
+              </button>
+
+              <!-- Official Pleos Dropdown Component -->
+              <div class="pleos-dropdown" id="routeFilterDropdown">
+                <button class="pleos-dropdown-trigger" onclick="toggleRouteDropdown()">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+                  </svg>
+                  <span id="dropdownSelectedLabel">전 구간: 서울 → 속초 (168km)</span>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </button>
+                <div class="pleos-dropdown-menu">
+                  <button class="dropdown-option selected" onclick="selectRouteFilter('전 구간: 서울 → 속초 (168km)', 1, this)">
+                    <span>전 구간: 서울 → 속초 (168km)</span>
+                    <span>4곳</span>
+                  </button>
+                  <button class="dropdown-option" onclick="selectRouteFilter('양양 7번 국도 해안도로', 1, this)">
+                    <span>양양 7번 국도 해안도로</span>
+                    <span>16:40</span>
+                  </button>
+                  <button class="dropdown-option" onclick="selectRouteFilter('정동진 해안 노을 대교', 2, this)">
+                    <span>정동진 해안 노을 대교</span>
+                    <span>16:15</span>
+                  </button>
+                  <button class="dropdown-option" onclick="selectRouteFilter('강릉 대관령 · 내린천 구간', 3, this)">
+                    <span>강릉 대관령 · 내린천 구간</span>
+                    <span>15:45</span>
+                  </button>
+                </div>
+              </div>
+
+              <button class="sb-action-pill" onclick="toggleWindowPolicy()">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="12" y1="3" x2="12" y2="21"></line>
+                </svg>
+                <span id="winPolicyBtnText">1:1 분할 뷰</span>
+              </button>
+
+              <!-- 4 Official Circle Icon Buttons for Window Bar -->
+              <div class="window-bar-controls">
+                <button class="pleos-icon-btn circle" onclick="swapSplitWindows()" title="좌우 창 위치 변경">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path></svg>
+                </button>
+                <button class="pleos-icon-btn circle" onclick="toggleWindowPolicy()" title="창 크기 변경">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Galmuri Window Stage -->
+          <div class="galmuri-stage">
+
+            <!-- VIEW 1: SCENIC CAPTURE + LIVE ROUTE PHOTO MAP & FEED -->
+            <div class="g-view active" id="gview-live">
+              <div class="camera-card">
+                <div class="cam-photo-bg" id="camBgPhoto" style="background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=85');"></div>
+                <div class="cam-vignette"></div>
+
+                <div class="cam-viewfinder">
+                  <div class="vf-b vf-1"></div>
+                  <div class="vf-b vf-2"></div>
+                  <div class="vf-b vf-3"></div>
+                  <div class="vf-b vf-4"></div>
+                </div>
+
+                <!-- Top Camera HUD -->
+                <div class="cam-top-bar">
+                  <div class="cam-top-flex">
+                    <div class="hud-single-pill">
+                      <div class="rec-tag">
+                        <span class="rec-red"></span>
+                        <span>CAM 01</span>
+                      </div>
+                      <span>21.5°C</span>
+                      <span>·</span>
+                      <button class="hud-btn-text" onclick="toggleWindowSensor()" id="hudWinBtn">바닷바람 감지 (창문 열림)</button>
+                      <span>·</span>
+                      <button class="hud-btn-text" onclick="toggleDriveMode()" id="hudModeBtn">Comfort 78km/h</button>
+                    </div>
+
+                    <div class="pleos-segmented-menu">
+                      <button class="seg-tab active" style="padding:3px 8px; font-size:11px;" onclick="setSceneTheme('ocean', this)">동해 해안도로</button>
+                      <button class="seg-tab" style="padding:3px 8px; font-size:11px;" onclick="setSceneTheme('sunset', this)">정동진 노을길</button>
+                      <button class="seg-tab" style="padding:3px 8px; font-size:11px;" onclick="setSceneTheme('starry', this)">대관령 밤하늘</button>
+                    </div>
+                  </div>
+
+                  <div class="scenic-guide-strip">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="16" x2="12" y2="12"></line>
+                      <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    <span id="scenicBannerText"><strong>양양 7번 국도 절경 구간</strong> — 스마트폰 대신 오른쪽 창밖 바다를 감상하고 이 순간을 갈무리해 보세요.</span>
+                  </div>
+                </div>
+
+                <!-- Bottom Glass Media + Capture Basic Buttons + CarUxRestrictions Text Field -->
+                <div class="cam-bottom-bar">
+                  <div class="cam-bottom-main">
+                    <div class="bgm-now">
+                      <div class="bgm-thumb" id="nowAlbumCover" style="background-image: url('https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=300&q=80');"></div>
+                      <div style="min-width:0;">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                          <span class="bgm-name" id="nowSongTitle">우리의 바다 (Ocean Breeze)</span>
+                          <span class="tag-mono">촬영 지점에 함께 매핑됨</span>
+                        </div>
+                        <div class="bgm-sub" id="nowSongArtist">루시드 아일랜드 · 02:14 / 03:45</div>
+                      </div>
+                      <button class="pleos-icon-btn" onclick="cycleSong()" title="다음 곡 전환">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                          <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                          <line x1="19" y1="5" x2="19" y2="19"></line>
+                        </svg>
+                      </button>
+                    </div>
+
+                    <div style="display:flex; align-items:center; gap:8px;">
+                      <!-- Official Pleos Basic Button with Spinner Loading State -->
+                      <button class="pleos-basic-btn" id="btnCapturePrimary" onclick="captureScenicMoment()">
+                        <span class="pleos-spinner"></span>
+                        <svg class="btn-prefix-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                          <circle cx="12" cy="13" r="4"></circle>
+                        </svg>
+                        <span>지금 풍경과 노래 갈무리</span>
+                      </button>
+
+                      <button class="pleos-basic-btn secondary" onclick="triggerVoiceMoment()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                          <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                        </svg>
+                        <span>음성 기록</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Official Pleos Text Field Component (Enforces CarUxRestrictions: ReadOnly/Preset in D, Editable in P) -->
+                  <div class="pleos-textfield-bar readonly-driving" id="quickNoteFieldBar">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="color:var(--text-secondary);">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    <input
+                      type="text"
+                      class="pleos-textfield-input"
+                      id="quickNoteInput"
+                      readonly
+                      placeholder="주행 중 키보드 입력 제한(NO_KEYBOARD) — 우측 프리셋 태그 또는 음성 기록을 사용하세요"
+                    />
+                    <div style="display:flex; align-items:center; gap:5px;">
+                      <button class="preset-chip" onclick="applyPresetNote('#동해바다절경')">#동해바다절경</button>
+                      <button class="preset-chip" onclick="applyPresetNote('#창문열고드라이브')">#창문열고드라이브</button>
+                      <button class="preset-chip" onclick="applyPresetNote('#아이들웃음소리')">#아이들웃음소리</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right: Mini Route Photo Map + Moments List -->
+              <div class="right-route-feed-col">
+                <div class="mini-route-photo-map">
+                  <div class="mrpm-header">
+                    <h3>실시간 이동 경로 &amp; 촬영 위치 포토맵</h3>
+                    <!-- Official Pleos Text Button Component -->
+                    <button class="pleos-text-btn" onclick="switchView('diary')">
+                      <span>전체 경로 포토맵 확대</span>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
+                  </div>
+
+                  <div class="mrpm-canvas-wrap">
+                    <svg width="100%" height="100%" viewBox="0 0 420 120" preserveAspectRatio="none">
+                      <polygon points="0,0 420,0 420,38 260,32 120,44 0,35" fill="#081C30" />
+                      <path d="M 28 96 Q 115 88 185 68 T 315 58 T 392 42" stroke="rgba(37,99,235,0.25)" stroke-width="10" stroke-linecap="round" fill="none" />
+                      <path d="M 28 96 Q 115 88 185 68 T 315 58 T 392 42" stroke="#2563EB" stroke-width="3.5" stroke-linecap="round" fill="none" />
+                      <circle cx="392" cy="42" r="4.5" fill="#64748B" stroke="#0B0E16" stroke-width="1.5" />
+                    </svg>
+                    <div id="miniRoutePhotoPins" style="position:absolute; inset:0;"></div>
+                  </div>
+                </div>
+
+                <div class="feed-card-box">
+                  <div class="mrpm-header">
+                    <h3>촬영 지점별 갈무리 타임라인</h3>
+                    <span style="font-size:11px; color:var(--text-secondary);">선택 시 위치·노래 재생</span>
+                  </div>
+                  <div class="moments-scroll-area" id="liveFeedList"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ==============================================================
+                 VIEW 2: FULL VEHICLE ROUTE PHOTO MAP & JOURNEY ARCHIVE
+                 ============================================================== -->
+            <div class="g-view" id="gview-diary">
+              <div class="full-route-map-panel">
+                <div class="mrpm-header">
+                  <div>
+                    <h2 style="font-size:16.5px; font-weight:700; letter-spacing:-0.02em;">전체 차량 이동 경로 &amp; 촬영 위치 포토맵 (서울 → 속초 168km)</h2>
+                    <p style="font-size:11.5px; color:var(--text-secondary); margin-top:2px;">이동 경로 위의 사진 이미지를 선택하거나 우측 상단 인디케이터로 촬영 지점을 탐색하세요.</p>
+                  </div>
+
+                  <!-- Official Pleos Indicator & Page Navigation Component (Prev / Present Value / Next) -->
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <div class="pleos-indicator-nav">
+                      <button class="pleos-icon-btn plain" style="width:24px; height:24px;" onclick="stepRoutePhotoSpot(-1)">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                      </button>
+                      <span id="routeSpotIndicatorText">지점 1 / 4 · 양양 해안도로</span>
+                      <button class="pleos-icon-btn plain" style="width:24px; height:24px;" onclick="stepRoutePhotoSpot(1)">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                      </button>
+                    </div>
+
+                    <button class="pleos-basic-btn" style="height:32px; font-size:11.5px; padding:0 12px;" onclick="showAppToast('전체 차량 이동 경로 포토맵과 드라이브 플레이리스트를 가족 스마트폰으로 전송했습니다.')">
+                      <span>스마트폰 전송</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Interactive Full Route Map with Photo Markers Placed at Each Capture Coordinate -->
+                <div class="interactive-route-stage">
+                  <svg width="100%" height="100%" viewBox="0 0 640 340" preserveAspectRatio="none">
+                    <defs>
+                      <linearGradient id="routeGlow" x1="0" y1="300" x2="600" y2="40" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#1D4ED8" />
+                        <stop offset="60%" stop-color="#2563EB" />
+                        <stop offset="100%" stop-color="#60A5FA" />
+                      </linearGradient>
+                    </defs>
+                    <line x1="0" y1="85" x2="640" y2="85" stroke="rgba(255,255,255,0.03)" stroke-width="1" />
+                    <line x1="0" y1="170" x2="640" y2="170" stroke="rgba(255,255,255,0.03)" stroke-width="1" />
+                    <line x1="0" y1="255" x2="640" y2="255" stroke="rgba(255,255,255,0.03)" stroke-width="1" />
+                    <line x1="160" y1="0" x2="160" y2="340" stroke="rgba(255,255,255,0.03)" stroke-width="1" />
+                    <line x1="320" y1="0" x2="320" y2="340" stroke="rgba(255,255,255,0.03)" stroke-width="1" />
+                    <line x1="480" y1="0" x2="480" y2="340" stroke="rgba(255,255,255,0.03)" stroke-width="1" />
+
+                    <polygon points="330,0 640,0 640,260 520,230 410,165 350,90" fill="#081D31" />
+
+                    <path d="M 55 290 Q 145 275 215 225 T 365 175 T 495 110 T 585 55" stroke="rgba(37,99,235,0.22)" stroke-width="16" stroke-linecap="round" fill="none" />
+                    <path d="M 55 290 Q 145 275 215 225 T 365 175 T 495 110 T 585 55" stroke="url(#routeGlow)" stroke-width="5" stroke-linecap="round" fill="none" />
+
+                    <circle cx="55" cy="290" r="6" fill="#FFFFFF" />
+                    <text x="40" y="312" fill="#94A3B8" font-size="11" font-weight="600">서울 출발 (14:10)</text>
+
+                    <circle cx="585" cy="55" r="6" fill="#2563EB" stroke="#FFFFFF" stroke-width="2" />
+                    <text x="530" y="38" fill="#F8FAFC" font-size="11" font-weight="700">속초 해변 (목적지)</text>
+                  </svg>
+
+                  <div id="fullRoutePhotoPinsLayer" style="position:absolute; inset:0;"></div>
+                </div>
+
+                <!-- Selected Photo Marker Location Detail Bar -->
+                <div class="selected-spot-detail">
+                  <div class="ssd-photo" id="ssdPhoto" style="background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=400&q=80');"></div>
+                  <div style="min-width:0;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                      <span style="font-size:13.5px; font-weight:700; color:var(--text-primary);" id="ssdTitle">양양 7번 국도 해안도로 풍경 갈무리</span>
+                      <span class="badge-neutral" id="ssdCoord">북위 38.075° 동경 128.619° · 16:40</span>
+                    </div>
+                    <p style="font-size:11.5px; color:var(--text-secondary); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" id="ssdQuote">
+                      "스마트폰 보지 말고 오른쪽 창밖 봐봐, 바다가 진짜 깨끗해!"
+                    </p>
+                    <div style="display:flex; gap:6px; margin-top:5px;">
+                      <span class="badge-neutral" id="ssdSong">그때 들은 노래: 우리의 바다 — 루시드 아일랜드</span>
+                      <span class="badge-neutral" id="ssdSensor">창문 열림 · 21.5°C</span>
+                    </div>
+                  </div>
+                  <button class="pleos-basic-btn secondary" style="height:36px; font-size:12px;" onclick="playMelodicPreview('ocean')">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    <span>당시 음악 재생</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Right: Journey Soundtrack & Moment Cards -->
+              <div class="feed-card-box">
+                <div class="mrpm-header">
+                  <h3>선율 갈무리 · 경로별 재생 트랙 아카이브</h3>
+                  <span style="font-size:11px; color:var(--text-secondary);">총 168km · 4곡</span>
+                </div>
+                <div class="moments-scroll-area" id="diaryFeedList"></div>
+              </div>
+            </div>
+
+            <!-- VIEW 3: DEJA-VU ROUTE -->
+            <div class="g-view" id="gview-dejavu">
+              <div class="dejavu-hero">
+                <div>
+                  <span class="tag-mono">공간 기반 기억 마중 · 반경 500m 진입 감지</span>
+                  <h2 style="font-size:20px; font-weight:700; letter-spacing:-0.02em; margin-top:8px;">다시 지나는 길 위에서 깨어나는 그날의 풍경과 노래</h2>
+                  <p style="font-size:12.5px; color:#CBD5E1; margin-top:5px; line-height:1.45;">
+                    과거 가족과 함께 달리며 풍경과 음악을 갈무리했던 도로 지점에 다시 진입하면, 차량이 그때 들었던 노래와 목소리를 자동으로 재생합니다.
+                  </p>
+                </div>
+
+                <div class="dejavu-overlay-card">
+                  <div style="display:flex; align-items:center; justify-content:space-between;">
+                    <span style="font-size:13px; font-weight:700;">2025. 10. 18 가을 가족 여행 촬영 지점 (강릉 헌화로 해안도로)</span>
+                    <span class="badge-neutral">당시 재생곡: 노을 지는 해안선 — 선셋 드라이브</span>
+                  </div>
+                  <p style="font-size:13px; color:#E2E8F0; line-height:1.5;">
+                    "우와, 아빠 오른쪽 창밖에 바다가 주황색으로 반짝거려요! 이 노래 틀어놓고 창문 여니까 진짜 여행 온 것 같아!"
+                  </p>
+                  <div style="display:flex; gap:8px;">
+                    <button class="pleos-basic-btn" onclick="triggerDejaVuReplay()">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                      <span>그때 그 노래와 음성 재생</span>
+                    </button>
+                    <button class="pleos-basic-btn secondary" onclick="addDejaVuWaypoint()">
+                      <span>그날 들렀던 전망대를 경유지로 추가</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="feed-card-box">
+                <div class="mrpm-header">
+                  <h3>이 도로 위에 쌓인 연도별 갈무리 레이어</h3>
+                  <span style="font-size:11px; color:var(--text-secondary);">기변 시에도 이전됨</span>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:9px;">
+                  <div class="m-card" style="grid-template-columns:1fr;">
+                    <div class="m-info">
+                      <span class="m-title">2026. 11. 15 · 동해 7번 국도 주말 여정</span>
+                      <span class="m-quote">촬영 지점 포토 마커 4곳 · 재생곡 '우리의 바다' 외 3곡 · 4인 가족 탑승</span>
+                    </div>
+                  </div>
+                  <div class="m-card" style="grid-template-columns:1fr;">
+                    <div class="m-info">
+                      <span class="m-title">2025. 10. 18 · 가을 바다 캠핑 드라이브</span>
+                      <span class="m-quote">촬영 지점 포토 마커 6곳 · 재생곡 '노을 지는 해안선' · 창문 개방 주행 32분</span>
+                    </div>
+                  </div>
+                  <div class="m-card" style="grid-template-columns:1fr;">
+                    <div class="m-info">
+                      <span class="m-title">2024. 07. 29 · 여름 첫 가족 휴가</span>
+                      <span class="m-quote">빗길 와이퍼 작동 감성 드라이브 기록 · 톨게이트 통과 가족 음성 2건</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Official Pleos Toast Component (24px bottom/side padding, max-width 792px, message max-width 712px) -->
+            <div class="pleos-app-toast" id="pleosAppToast">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span class="pleos-toast-message" id="pleosToastMessage">알림 메시지</span>
+            </div>
+
+          </div>
+        </article>
+      </section>
+    </div>
+
+    <!-- ======================================================================
+         3. GNB - GLOBAL NAVIGATION BAR (Official 11-Slot Layout + 2s OSD)
+         ====================================================================== -->
+    <footer class="pleos-gnb-bar">
+      <div class="gnb-side-group">
+        <button class="gnb-slot-btn" onclick="triggerOSD('Vehicle Control', '차량 설정 요약 화면을 호출합니다')" title="1. Vehicle Settings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+            <path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"></path>
+            <circle cx="6.5" cy="16.5" r="2.5"></circle>
+            <circle cx="16.5" cy="16.5" r="2.5"></circle>
+          </svg>
+        </button>
+
+        <div class="gnb-climate-pill">
+          <button class="hud-btn-text" onclick="adjustTemp('driver', -0.5)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </button>
+          <div class="climate-val-col">
+            <span class="climate-temp-num" id="driverTempVal">21.5°</span>
+            <span class="climate-auto-sub">AUTO</span>
+          </div>
+          <button class="hud-btn-text" onclick="adjustTemp('driver', 0.5)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+        </div>
+
+        <button class="gnb-slot-btn" onclick="triggerOSD('Climate Control', '전면 성에 제거(FR Defrost) 작동')" title="3. FR/RR Defrost">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+            <path d="M4 19h16M6 15c0-3 2-5 2-8m4 8c0-3 2-5 2-8m4 8c0-3 2-5 2-8"></path>
+          </svg>
+        </button>
+
+        <button class="gnb-slot-btn" onclick="triggerOSD('Vehicle Control', '운전석 시트 통풍 2단계 작동')" title="4. 운전석 시트 통풍/열선">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+            <path d="M7 18v-6a5 5 0 0 1 10 0v6M5 21h14"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="gnb-center-apps">
+        <button class="gnb-app-tile fixed-navi" onclick="toggleWindowPolicy()" title="5. Fixed App: Navigation (1:1 분할 토글)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+          </svg>
+        </button>
+
+        <button class="gnb-app-tile" onclick="cycleSong()" title="6. Bluetooth Music / Media">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+            <path d="M9 18V5l12-2v13"></path>
+            <circle cx="6" cy="18" r="3"></circle>
+            <circle cx="18" cy="16" r="3"></circle>
+          </svg>
+        </button>
+
+        <button class="gnb-app-tile running" onclick="switchView('live')" title="6. 갈무리 (GALMURI)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+            <circle cx="12" cy="13" r="4"></circle>
+          </svg>
+        </button>
+
+        <button class="gnb-app-tile" onclick="switchView('diary')" title="6. 전체 이동 경로 포토맵">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+            <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+            <line x1="8" y1="2" x2="8" y2="18"></line>
+            <line x1="16" y1="6" x2="16" y2="22"></line>
+          </svg>
+        </button>
+
+        <button class="gnb-app-tile" onclick="showAppToast('App Library — 현재 갈무리(GALMURI) 앱이 포그라운드에서 실행 중입니다.')" title="7. App Library">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+            <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+            <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+            <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+            <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+          </svg>
+        </button>
+
+        <div style="width:1px; height:16px; background:var(--border-hairline); margin:0 2px;"></div>
+
+        <button class="gnb-app-tile" onclick="switchView('dejavu')" title="8. Recent App: 기억 마중">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+            <circle cx="12" cy="10" r="3"></circle>
+            <path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"></path>
+          </svg>
+        </button>
+        <button class="gnb-app-tile" onclick="toggleDrawer('mobile')" title="8. Recent App: Mobile Sync">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+            <line x1="12" y1="18" x2="12.01" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="gnb-side-group">
+        <button class="gnb-slot-btn" onclick="triggerOSD('Vehicle Control', '조수석 시트 통풍 2단계 작동')" title="9. 조수석 시트 통풍/열선">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+            <path d="M7 18v-6a5 5 0 0 1 10 0v6M5 21h14"></path>
+          </svg>
+        </button>
+
+        <div class="gnb-climate-pill">
+          <button class="hud-btn-text" onclick="adjustTemp('passenger', -0.5)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </button>
+          <div class="climate-val-col">
+            <span class="climate-temp-num" id="passengerTempVal">22.0°</span>
+            <span class="climate-auto-sub">AUTO</span>
+          </div>
+          <button class="hud-btn-text" onclick="adjustTemp('passenger', 0.5)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+        </div>
+
+        <button class="gnb-slot-btn" onclick="cycleSong()" title="11. Media & Sound Control">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          </svg>
+        </button>
+      </div>
+    </footer>
+
+    <!-- Official Pleos OSD (On-Screen Display — Auto-dismisses after 2.0s above GNB) -->
+    <div class="pleos-osd-banner" id="pleosOsdBanner">
+      <span class="tag-mono" id="osdCategoryTag">OSD</span>
+      <span id="osdMessageText">상태 변경 알림</span>
+    </div>
+
+    <!-- ======================================================================
+         SLIDE-OVER SYSTEM DRAWERS (Mobile Sync & SDK Console)
+         ====================================================================== -->
+    <aside class="sys-drawer" id="drawerMobile">
+      <div class="sys-drawer-head">
+        <h3>갈무리 모바일 컴패니언 연동</h3>
+        <button class="pleos-icon-btn" onclick="toggleDrawer('mobile')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <p style="font-size:11.5px; color:var(--text-secondary); line-height:1.45;">
+        차량에서 갈무리한 전체 이동 경로 포토맵과 촬영 지점별 노래가 스마트폰에 실시간 동기화되며, 동승자가 찍은 사진도 즉시 경로 위에 배치됩니다.
+      </p>
+      <div class="moments-scroll-area" id="mobileSyncList"></div>
+      <div style="display:flex; flex-direction:column; gap:7px; padding-top:8px; border-top:1px solid var(--border-hairline);">
+        <button class="pleos-basic-btn" onclick="addPassengerPhonePhoto()">
+          <span>동승자 스마트폰 사진을 현재 이동 경로에 배치</span>
+        </button>
+        <button class="pleos-basic-btn secondary" onclick="showAppToast('전체 이동 경로 포토맵과 드라이브 BGM이 결합된 숏폼(Reels) 영상을 생성했습니다.')">
+          <span>이동 경로 포토맵 숏폼(Reels) 생성</span>
+        </button>
+      </div>
+    </aside>
+
+    <aside class="sys-drawer" id="drawerSdk">
+      <div class="sys-drawer-head">
+        <h3>Pleos Connect SDK &amp; Resource Console</h3>
+        <button class="pleos-icon-btn" onclick="toggleDrawer('sdk')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="sdk-metrics-strip">
+        <div class="sdk-m-box">
+          <div class="v">3.1%</div>
+          <div class="l">주행 CPU (기준 &lt;5%)</div>
+        </div>
+        <div class="sdk-m-box">
+          <div class="v">214 MB</div>
+          <div class="l">RAM (기준 &lt;400MB)</div>
+        </div>
+        <div class="sdk-m-box">
+          <div class="v" id="sdkDoStatus">DO Active</div>
+          <div class="l">CarUxRestrictions</div>
+        </div>
+      </div>
+
+      <div style="font-size:11px; color:var(--text-secondary); line-height:1.45;">
+        • <strong>AAOS Alignment:</strong> <code>CarPropertyManager</code> (Speed, Gear, ExtTemp)<br />
+        • <strong>Pleos Vehicle SDK:</strong> <code>checkWindowCapabilities()</code>, <code>getWindow()</code>, <code>getSeat()</code><br />
+        • <strong>NaviHelper &amp; AudioFocus:</strong> <code>FusedLocation.isSupported()</code>, <code>AudioFocusRequest</code>
+      </div>
+
+      <div class="sdk-log-box" id="sdkTerminal"></div>
+    </aside>
+
+  </main>
+
+  <script>
+    const scenes = {
+      ocean: {
+        name: '양양 7번 국도 해안도로',
+        coord: '북위 38.075° 동경 128.619°',
+        banner: '<strong>양양 7번 국도 절경 구간</strong> — 스마트폰 대신 오른쪽 창밖 바다를 감상하고 이 순간을 갈무리해 보세요.',
+        photoUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=85',
+        thumbUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=400&q=80',
+        weather: '맑음 21.5°C',
+        extTemp: '외기 19.0°C · 맑음',
+        mapX: 77,
+        mapY: 32
+      },
+      sunset: {
+        name: '정동진 해안 노을 대교',
+        coord: '북위 37.691° 동경 129.034°',
+        banner: '<strong>정동진 일몰 해안 구간</strong> — 차창 밖으로 붉게 물드는 노을과 지금 흐르는 음악을 경로 위에 갈무리해 보세요.',
+        photoUrl: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1600&q=85',
+        thumbUrl: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=400&q=80',
+        weather: '노을 19.0°C',
+        extTemp: '외기 18.0°C · 일몰',
+        mapX: 60,
+        mapY: 46
+      },
+      starry: {
+        name: '대관령 밤하늘 귀갓길',
+        coord: '북위 37.688° 동경 128.752°',
+        banner: '<strong>대관령 야간 드라이브 구간</strong> — 잔잔한 밤길 음악과 함께 가족들의 대화를 음성으로 남겨보세요.',
+        photoUrl: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1600&q=85',
+        thumbUrl: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=400&q=80',
+        weather: '야간 15.0°C',
+        extTemp: '외기 15.0°C · 야간',
+        mapX: 42,
+        mapY: 60
+      }
+    };
+
+    const songs = [
+      {
+        title: '우리의 바다 (Ocean Breeze)',
+        artist: '루시드 아일랜드',
+        time: '02:14 / 03:45',
+        mood: 'ocean',
+        cover: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=300&q=80'
+      },
+      {
+        title: '노을 지는 해안선 (Golden Hour)',
+        artist: '선셋 드라이브',
+        time: '01:48 / 04:02',
+        mood: 'sunset',
+        cover: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=300&q=80'
+      },
+      {
+        title: '주말의 패밀리 카 (Little Picnic)',
+        artist: '어쿠스틱 데이',
+        time: '00:55 / 03:20',
+        mood: 'family',
+        cover: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&w=300&q=80'
+      },
+      {
+        title: '별빛 국도 24시 (Night Cruise)',
+        artist: '미드나잇 웨이브',
+        time: '03:02 / 04:15',
+        mood: 'starry',
+        cover: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=300&q=80'
+      }
+    ];
+
+    let currentSceneKey = 'ocean';
+    let currentSongIdx = 0;
+    let windowOpen = true;
+    let driveMode = 'Comfort 78km/h';
+    let driverTemp = 21.5;
+    let passengerTemp = 22.0;
+    let selectedMomentIdx = 0;
+    let currentWidgetIdx = 0;
+
+    let moments = [
+      {
+        id: 1,
+        spotShort: '양양 해안도로',
+        title: '양양 7번 국도 해안도로 풍경 갈무리',
+        coord: '북위 38.075° 동경 128.619°',
+        time: '16:40',
+        quote: '"스마트폰 보지 말고 오른쪽 창밖 봐봐, 바다가 진짜 깨끗해!"',
+        songBadge: '우리의 바다 — 루시드 아일랜드',
+        contextBadge: '창문 열림 · 21.5°C',
+        mood: 'ocean',
+        photo: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=400&q=80',
+        mapX: 77,
+        mapY: 34
+      },
+      {
+        id: 2,
+        spotShort: '정동진 노을교',
+        title: '정동진 해안 커브 구간 노을 갈무리',
+        coord: '북위 37.691° 동경 129.034°',
+        time: '16:15',
+        quote: '"창문 열자마자 파도 소리랑 노을빛이 차 안으로 가득 들어온다."',
+        songBadge: '노을 지는 해안선 — 선셋 드라이브',
+        contextBadge: '바닷바람 감지 · 19.0°C',
+        mood: 'sunset',
+        photo: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=400&q=80',
+        mapX: 57,
+        mapY: 51
+      },
+      {
+        id: 3,
+        spotShort: '대관령 TG',
+        title: '강릉 대관령 톨게이트 통과 · 가족 음성',
+        coord: '북위 37.688° 동경 128.752°',
+        time: '15:45',
+        quote: '"드디어 강원도 도착! 차 안에서 다 같이 노래 부르니까 벌써 여행 온 기분이야."',
+        songBadge: '주말의 패밀리 카 — 어쿠스틱 데이',
+        contextBadge: '4인 가족 음성 기록',
+        mood: 'family',
+        photo: 'https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=400&q=80',
+        mapX: 36,
+        mapY: 66
+      },
+      {
+        id: 4,
+        spotShort: '내린천 휴게소',
+        title: '내린천 휴게소 충전 휴식 · 스마트폰 사진',
+        coord: '북위 37.802° 동경 128.188°',
+        time: '15:10',
+        quote: '"뒷좌석에서 찍은 창밖 단풍 사진도 차량 이동 경로 지도에 바로 올렸어."',
+        songBadge: '별빛 국도 24시 — 미드나잇 웨이브',
+        contextBadge: '모바일 동기화 사진',
+        mood: 'starry',
+        photo: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80',
+        mapX: 18,
+        mapY: 81
+      }
+    ];
+
+    function appendSdkLog(apiCall, payload) {
+      const term = document.getElementById('sdkTerminal');
+      if (!term) return;
+      const now = new Date().toTimeString().split(' ')[0];
+      const div = document.createElement('div');
+      div.className = 'log-row';
+      div.innerHTML = `<span style="color:#64748B;">[${now}]</span> <strong style="color:#F8FAFC;">${apiCall}</strong><br/><span>${payload}</span>`;
+      term.prepend(div);
+    }
+
+    // Driving View Bottom Multi-Widget Switcher (Official Pleos Widgets Component)
+    const drivingWidgets = [
+      { title: '주행 환경 & 창문 센서', getVal: () => `${windowOpen ? '바닷바람 환기 열림' : '실내 정숙 닫힘'} · 21.5°C` },
+      { title: '현재 경로 포토핀 요약', getVal: () => `총 ${moments.length}곳 갈무리됨 · 최근: ${moments[0].spotShort}` },
+      { title: '전비 및 주행 효율', getVal: () => '6.2 km/kWh · 잔여 287 km' }
+    ];
+
+    function setDrivingWidget(idx) {
+      currentWidgetIdx = idx;
+      const w = drivingWidgets[idx];
+      document.getElementById('widgetTitleText').textContent = w.title;
+      document.getElementById('widgetMainValue').textContent = w.getVal();
+      document.querySelectorAll('.widget-pagination .w-page-dot').forEach((d, i) => {
+        d.classList.toggle('active', i === idx);
+      });
+    }
+
+    function cycleDrivingWidget() {
+      setDrivingWidget((currentWidgetIdx + 1) % drivingWidgets.length);
+    }
+
+    // Official Pleos Dropdown Component
+    function toggleRouteDropdown() {
+      document.getElementById('routeFilterDropdown').classList.toggle('opened');
+    }
+
+    function selectRouteFilter(label, momentId, optEl) {
+      document.getElementById('dropdownSelectedLabel').textContent = label;
+      document.getElementById('routeFilterDropdown').classList.remove('opened');
+      document.querySelectorAll('.pleos-dropdown-menu .dropdown-option').forEach(o => o.classList.remove('selected'));
+      if (optEl) optEl.classList.add('selected');
+      selectRouteSpotById(momentId, true);
+    }
+
+    // Official Pleos Toggle Button Component
+    function toggleAutoCaptureOption(btnEl) {
+      const isToggled = btnEl.classList.toggle('toggled');
+      appendSdkLog('PleosToggleButton.onToggleChanged()', `{ autoWindowCapture: ${isToggled} }`);
+      showAppToast(isToggled
+        ? '창문 개방 시 자동 풍경 갈무리 기능이 활성화(Toggled: True)되었습니다.'
+        : '창문 개방 시 자동 풍경 갈무리 기능이 해제(Toggled: False)되었습니다.');
+    }
+
+    // Official Pleos Indicator / Page Navigation Stepper
+    function stepRoutePhotoSpot(delta) {
+      selectedMomentIdx = (selectedMomentIdx + delta + moments.length) % moments.length;
+      const m = moments[selectedMomentIdx];
+      selectRouteSpotById(m.id, true);
+    }
+
+    function selectRouteSpotById(momentId, playAudio) {
+      const idx = moments.findIndex(item => item.id === momentId);
+      selectedMomentIdx = idx >= 0 ? idx : 0;
+      const m = moments[selectedMomentIdx];
+
+      const photoEl = document.getElementById('ssdPhoto');
+      const titleEl = document.getElementById('ssdTitle');
+      const coordEl = document.getElementById('ssdCoord');
+      const quoteEl = document.getElementById('ssdQuote');
+      const songEl = document.getElementById('ssdSong');
+      const sensorEl = document.getElementById('ssdSensor');
+      const indEl = document.getElementById('routeSpotIndicatorText');
+
+      if (photoEl) photoEl.style.backgroundImage = `url('${m.photo}')`;
+      if (titleEl) titleEl.textContent = m.title;
+      if (coordEl) coordEl.textContent = `${m.coord} · ${m.time}`;
+      if (quoteEl) quoteEl.textContent = m.quote;
+      if (songEl) songEl.textContent = `그때 들은 노래: ${m.songBadge}`;
+      if (sensorEl) sensorEl.textContent = m.contextBadge;
+      if (indEl) indEl.textContent = `지점 ${selectedMomentIdx + 1} / ${moments.length} · ${m.spotShort}`;
+
+      renderRoutePhotoPins();
+      if (playAudio) {
+        playMelodicPreview(m.mood || 'ocean');
+        showAppToast(`[${m.spotShort}] 지점의 촬영 사진과 당시 재생곡 [${m.songBadge.split(' — ')[0]}]를 재생합니다.`);
+      }
+    }
+
+    function renderRoutePhotoPins() {
+      const miniLayer = document.getElementById('miniRoutePhotoPins');
+      const fullLayer = document.getElementById('fullRoutePhotoPinsLayer');
+      const splitLayer = document.getElementById('splitMapPinsLayer');
+      const activeId = moments[selectedMomentIdx] ? moments[selectedMomentIdx].id : 1;
+
+      if (miniLayer) {
+        miniLayer.innerHTML = moments.slice(0, 5).map(m => `
+          <div class="route-photo-pin ${m.id === activeId ? 'active-pin' : ''}"
+               style="left:${m.mapX}%; top:${m.mapY + 12}%;"
+               onclick="selectRouteSpotById(${m.id}, true)">
+            <div class="pin-photo-frame" style="background-image:url('${m.photo}');"></div>
+            <div class="pin-stem"></div>
+            <div class="pin-dot"></div>
+            <span class="pin-caption">${m.spotShort}</span>
+          </div>
+        `).join('');
+      }
+
+      if (fullLayer) {
+        fullLayer.innerHTML = moments.slice(0, 6).map(m => `
+          <div class="large-route-photo-pin ${m.id === activeId ? 'selected' : ''}"
+               style="left:${m.mapX}%; top:${m.mapY}%;"
+               onclick="selectRouteSpotById(${m.id}, true)">
+            <div class="l-pin-card">
+              <div class="l-pin-img" style="background-image:url('${m.photo}');"></div>
+              <span class="l-pin-label">${m.spotShort} · ${m.time}</span>
+            </div>
+            <div class="pin-stem"></div>
+            <div class="pin-dot"></div>
+          </div>
+        `).join('');
+      }
+
+      if (splitLayer) {
+        splitLayer.innerHTML = moments.slice(0, 4).map(m => `
+          <div class="route-photo-pin"
+               style="left:${Math.min(82, m.mapX * 0.7 + 16)}%; top:${m.mapY + 14}%;"
+               onclick="selectRouteSpotById(${m.id}, true)">
+            <div class="pin-photo-frame" style="background-image:url('${m.photo}');"></div>
+            <div class="pin-stem"></div>
+            <div class="pin-dot"></div>
+            <span class="pin-caption">${m.spotShort}</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    function renderMoments() {
+      const cardsHtml = moments.map(m => `
+        <div class="m-card" onclick="selectRouteSpotById(${m.id}, true)">
+          <div class="m-thumb" style="background-image: url('${m.photo}');"></div>
+          <div class="m-info">
+            <div class="m-top">
+              <span class="m-title">${m.title}</span>
+              <span class="m-time">${m.time}</span>
+            </div>
+            <div class="m-quote">${m.quote}</div>
+            <div class="m-badges">
+              <span class="badge-neutral">${m.songBadge}</span>
+              <span class="badge-neutral">${m.contextBadge}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      const liveList = document.getElementById('liveFeedList');
+      const diaryList = document.getElementById('diaryFeedList');
+      const mobileList = document.getElementById('mobileSyncList');
+
+      if (liveList) liveList.innerHTML = cardsHtml;
+      if (diaryList) diaryList.innerHTML = cardsHtml;
+      if (mobileList) mobileList.innerHTML = cardsHtml;
+
+      setDrivingWidget(currentWidgetIdx);
+      renderRoutePhotoPins();
+    }
+
+    // Apply Preset Tag or Custom Note from Pleos Text Field
+    function applyPresetNote(tagText) {
+      const inputEl = document.getElementById('quickNoteInput');
+      inputEl.value = `${tagText} — 차창 밖 풍경과 노래가 어우러진 순간`;
+      showAppToast(`프리셋 메모 [${tagText}]가 선택되었습니다. 다음 갈무리 시 함께 기록됩니다.`);
+    }
+
+    // Capture Scenic Moment with Official Basic Button Loading Spinner (<0.25s response)
+    function captureScenicMoment() {
+      const btn = document.getElementById('btnCapturePrimary');
+      if (btn) btn.classList.add('loading');
+
+      const flash = document.getElementById('shutterFlash');
+      flash.classList.add('flash');
+      setTimeout(() => flash.classList.remove('flash'), 110);
+      setTimeout(() => { if (btn) btn.classList.remove('loading'); }, 220);
+
+      playMelodicPreview(songs[currentSongIdx].mood);
+
+      const sc = scenes[currentSceneKey];
+      const sg = songs[currentSongIdx];
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      const customNote = document.getElementById('quickNoteInput').value.trim();
+
+      const jitterX = Math.max(15, Math.min(86, sc.mapX + (Math.random() * 10 - 4)));
+      const jitterY = Math.max(22, Math.min(82, sc.mapY + (Math.random() * 8 - 4)));
+
+      const newId = Date.now();
+      moments.unshift({
+        id: newId,
+        spotShort: sc.name.split(' ')[0] + ' 포토핀',
+        title: `${sc.name} 풍경 갈무리`,
+        coord: sc.coord,
+        time: timeStr,
+        quote: customNote ? `"${customNote}"` : '"이 길 창밖 풍경이랑 지금 차에 흐르는 노래가 정말 잘 어울린다."',
+        songBadge: `${sg.title.split(' (')[0]} — ${sg.artist}`,
+        contextBadge: `${windowOpen ? '창문 열림' : '창문 닫힘'} · ${sc.weather}`,
+        mood: sg.mood,
+        photo: sc.thumbUrl,
+        mapX: jitterX,
+        mapY: jitterY
+      });
+
+      document.getElementById('quickNoteInput').value = '';
+      selectedMomentIdx = 0;
+      renderMoments();
+      selectRouteSpotById(newId, false);
+
+      appendSdkLog('Vehicle.getWindow() + FusedLocation + MediaSession', `{ windowOpen: ${windowOpen}, track: "${sg.title}", coord: "${sc.coord}", photoPinnedOnRoute: true }`);
+      showAppToast(`[${sc.name}] 촬영 지점에 풍경 사진 마커와 현재 재생곡 [${sg.title.split(' (')[0]}]가 배치되었습니다.`);
+    }
+
+    function triggerVoiceMoment() {
+      playMelodicPreview('family');
+      const sc = scenes[currentSceneKey];
+      const sg = songs[currentSongIdx];
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+      const newId = Date.now();
+      moments.unshift({
+        id: newId,
+        spotShort: sc.name.split(' ')[0] + ' 음성핀',
+        title: `${sc.name} 가족 음성 기록`,
+        coord: sc.coord,
+        time: timeStr,
+        quote: '"엄마 아빠랑 창밖 바다 보면서 같이 노래 들으니까 진짜 행복해요!"',
+        songBadge: `${sg.title.split(' (')[0]} — ${sg.artist}`,
+        contextBadge: '음성 캡슐 0:12',
+        mood: 'family',
+        photo: sc.thumbUrl,
+        mapX: Math.min(85, sc.mapX + 5),
+        mapY: Math.max(24, sc.mapY - 4)
+      });
+
+      selectedMomentIdx = 0;
+      renderMoments();
+      selectRouteSpotById(newId, false);
+
+      appendSdkLog('GleoAI.startVoiceJournal(AudioFocus.GAIN_TRANSIENT_MAY_DUCK)', `{ location: "${sc.name}", attachedTrack: "${sg.title}" }`);
+      showAppToast('Gleo AI 음성 인터랙션을 통해 가족의 대화와 현재 위치 사진이 경로 위에 갈무리되었습니다.');
+    }
+
+    function addPassengerPhonePhoto() {
+      const sg = songs[currentSongIdx];
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+      const newId = Date.now();
+      moments.unshift({
+        id: newId,
+        spotShort: '동승자 촬영핀',
+        title: '동승자 스마트폰 촬영 사진 경로 배치',
+        coord: '북위 38.112° 동경 128.594°',
+        time: timeStr,
+        quote: '"뒷좌석에서 찍은 바다 사진도 차량 이동 경로 지도에 바로 추가했어."',
+        songBadge: `${sg.title.split(' (')[0]} — ${sg.artist}`,
+        contextBadge: 'Mobile Sync 완료',
+        mood: sg.mood,
+        photo: 'https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=400&q=80',
+        mapX: 83,
+        mapY: 26
+      });
+
+      selectedMomentIdx = 0;
+      renderMoments();
+      selectRouteSpotById(newId, false);
+
+      appendSdkLog('CompanionSync.onPassengerPhotoPinned()', `{ syncedToRouteMap: true, track: "${sg.title}" }`);
+      showAppToast('동승자 스마트폰 사진이 현재 차량 이동 경로 위치에 실시간 배치되었습니다.');
+    }
+
+    // Official Pleos Window Policy (2:0 Landscape <-> 1:1 Portrait Split + Window Position Swap)
+    function toggleWindowPolicy() {
+      const container = document.getElementById('pleosAppContainer');
+      const btnText = document.getElementById('winPolicyBtnText');
+      const isSplit = container.classList.toggle('split-1-1');
+      btnText.textContent = isSplit ? '2:0 전체 창' : '1:1 분할 뷰';
+      appendSdkLog('PleosWindowPolicy.setOrientation()', `{ layout: "${isSplit ? 'PORTRAIT_1_1_SPLIT' : 'LANDSCAPE_2_0_SINGLE'}" }`);
+      showAppToast(isSplit
+        ? 'Window Policy: 내비게이션(Primary) + 갈무리(Secondary) 1:1 Portrait 분할 모드로 전환되었습니다.'
+        : 'Window Policy: 갈무리 앱이 2:0 Landscape 전체 윈도우로 확장되었습니다.');
+    }
+
+    function swapSplitWindows() {
+      const container = document.getElementById('pleosAppContainer');
+      if (!container.classList.contains('split-1-1')) {
+        container.classList.add('split-1-1');
+        document.getElementById('winPolicyBtnText').textContent = '2:0 전체 창';
+      }
+      const isSwapped = container.classList.toggle('swapped');
+      appendSdkLog('PleosWindowBar.onSwapWindowPosition()', `{ primaryLeft: ${!isSwapped} }`);
+      showAppToast('Window Bar 조작: 좌우 분할 애플리케이션 윈도우의 위치가 교체되었습니다.');
+    }
+
+    // Official Pleos System Notification Component Show/Hide
+    function showSystemNotification() {
+      const notif = document.getElementById('pleosSysNotification');
+      notif.classList.add('active');
+      appendSdkLog('PleosSystemNotification.notify()', '{ type: "IMAGE_ACTION", header: "전방 300m 2025년 가족 갈무리 지점 진입" }');
+    }
+
+    function hideSystemNotification() {
+      document.getElementById('pleosSysNotification').classList.remove('active');
+    }
+
+    // Official Pleos CarUxRestrictions Driving vs Parking Policy (Controls Text Field ReadOnly vs Editable)
+    function setGearState(gear) {
+      ['P', 'R', 'N', 'D'].forEach(g => {
+        document.getElementById(`gear${g}`).classList.toggle('active', g === gear);
+      });
+
+      const speedEl = document.getElementById('dvSpeedVal');
+      const stateTag = document.getElementById('dvStateTag');
+      const fieldBar = document.getElementById('quickNoteFieldBar');
+      const fieldInput = document.getElementById('quickNoteInput');
+      const sdkDo = document.getElementById('sdkDoStatus');
+
+      if (gear === 'P') {
+        speedEl.textContent = '0';
+        stateTag.textContent = 'PARKED';
+        fieldBar.classList.remove('readonly-driving');
+        fieldInput.removeAttribute('readonly');
+        fieldInput.placeholder = '주차(P단) 상태 — 여정 일기 메모를 키보드로 자유롭게 입력할 수 있습니다';
+        if (sdkDo) sdkDo.textContent = 'Unrestricted (P)';
+        switchView('diary');
+        appendSdkLog('CarUxRestrictionsManager.onUxRestrictionsChanged()', '{ state: "PARKING", restrictions: "NONE", textFieldEditable: true }');
+        showAppToast('주차(P단) 전환 감지 — 주행 규제가 해제되어 전체 경로 포토맵과 텍스트 직접 입력이 활성화되었습니다.');
+      } else {
+        speedEl.textContent = '78';
+        stateTag.textContent = 'AUTO HOLD';
+        fieldBar.classList.add('readonly-driving');
+        fieldInput.setAttribute('readonly', 'true');
+        fieldInput.placeholder = '주행 중 키보드 입력 제한(NO_KEYBOARD) — 우측 프리셋 태그 또는 음성 기록을 사용하세요';
+        if (sdkDo) sdkDo.textContent = 'DO Active (D)';
+        appendSdkLog('CarUxRestrictionsManager.onUxRestrictionsChanged()', `{ state: "DRIVING_${gear}", activeRestrictions: "NO_VIDEO | NO_KEYBOARD | LIMIT_STRING_LENGTH" }`);
+        showAppToast(`주행(${gear}단) 전환 감지 — CarUxRestrictions 정책에 따라 키보드 입력이 제한되고 음성·프리셋 모드로 전환됩니다.`);
+      }
+    }
+
+    function toggleWindowSensor() {
+      windowOpen = !windowOpen;
+      document.getElementById('hudWinBtn').textContent = windowOpen
+        ? '바닷바람 감지 (창문 열림)'
+        : '실내 정숙 주행 (창문 닫힘)';
+      setDrivingWidget(0);
+      appendSdkLog('Vehicle.checkWindowCapabilities() -> getWindow()', `{ open: ${windowOpen}, autoHighlightTrigger: ${windowOpen} }`);
+      triggerOSD('Vehicle Control', windowOpen
+        ? '창문 개방 감지 — 해안도로 감성 드라이브 자동 북마크 활성'
+        : '창문 전체 닫힘 상태로 전환');
+    }
+
+    function toggleDriveMode() {
+      driveMode = driveMode.includes('Comfort') ? 'Sport 84km/h' : 'Comfort 78km/h';
+      document.getElementById('hudModeBtn').textContent = driveMode;
+      document.getElementById('dvSpeedVal').textContent = driveMode.includes('Sport') ? '84' : '78';
+      appendSdkLog('CarPropertyManager.getProperty(PERF_VEHICLE_SPEED)', `{ mode: "${driveMode}" }`);
+      triggerOSD('Vehicle Control', `주행 모드 변경: ${driveMode}`);
+    }
+
+    function adjustTemp(zone, delta) {
+      if (zone === 'driver') {
+        driverTemp = Math.max(18, Math.min(28, driverTemp + delta));
+        document.getElementById('driverTempVal').textContent = `${driverTemp.toFixed(1)}°`;
+        appendSdkLog('Vehicle.getHVAC().setDriverTemp()', `{ tempC: ${driverTemp.toFixed(1)} }`);
+        triggerOSD('Climate Control', `운전석 목표 온도: ${driverTemp.toFixed(1)}°C`);
+      } else {
+        passengerTemp = Math.max(18, Math.min(28, passengerTemp + delta));
+        document.getElementById('passengerTempVal').textContent = `${passengerTemp.toFixed(1)}°`;
+        appendSdkLog('Vehicle.getHVAC().setPassengerTemp()', `{ tempC: ${passengerTemp.toFixed(1)} }`);
+        triggerOSD('Climate Control', `조수석 목표 온도: ${passengerTemp.toFixed(1)}°C`);
+      }
+    }
+
+    function cycleSong() {
+      currentSongIdx = (currentSongIdx + 1) % songs.length;
+      const sg = songs[currentSongIdx];
+      document.getElementById('nowSongTitle').textContent = sg.title;
+      document.getElementById('nowSongArtist').textContent = `${sg.artist} · ${sg.time}`;
+      document.getElementById('nowAlbumCover').style.backgroundImage = `url('${sg.cover}')`;
+      playMelodicPreview(sg.mood);
+      appendSdkLog('MediaSessionManager.onMetadataChanged()', `{ title: "${sg.title}", artist: "${sg.artist}" }`);
+      triggerOSD('Media & Sound', `재생 트랙 전환: ${sg.title} — ${sg.artist}`);
+    }
+
+    function setSceneTheme(key, btnEl) {
+      currentSceneKey = key;
+      const sc = scenes[key];
+      document.getElementById('camBgPhoto').style.backgroundImage = `url('${sc.photoUrl}')`;
+      document.getElementById('scenicBannerText').innerHTML = sc.banner;
+      document.getElementById('dvWeatherTag').textContent = sc.extTemp;
+      if (btnEl && btnEl.parentElement) {
+        btnEl.parentElement.querySelectorAll('.seg-tab').forEach(b => b.classList.remove('active'));
+        btnEl.classList.add('active');
+      }
+      appendSdkLog('FusedLocation.isSupported() -> onScenicZoneEnter()', `{ zone: "${sc.name}", coord: "${sc.coord}" }`);
+    }
+
+    function switchView(viewId) {
+      document.querySelectorAll('.g-view').forEach(v => v.classList.remove('active'));
+      const target = document.getElementById(`gview-${viewId}`);
+      if (target) target.classList.add('active');
+
+      document.querySelectorAll('.pleos-window-bar .pleos-segmented-menu .seg-tab').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-view') === viewId);
+      });
+    }
+
+    function toggleDrawer(type) {
+      const mobileDrawer = document.getElementById('drawerMobile');
+      const sdkDrawer = document.getElementById('drawerSdk');
+      const btnMobile = document.getElementById('btnMobileDrawer');
+      const btnSdk = document.getElementById('btnSdkDrawer');
+
+      if (type === 'mobile') {
+        const isOpen = mobileDrawer.classList.toggle('open');
+        sdkDrawer.classList.remove('open');
+        btnMobile.classList.toggle('active', isOpen);
+        btnSdk.classList.remove('active');
+      } else {
+        const isOpen = sdkDrawer.classList.toggle('open');
+        mobileDrawer.classList.remove('open');
+        btnSdk.classList.toggle('active', isOpen);
+        btnMobile.classList.remove('active');
+      }
+    }
+
+    function triggerDejaVuReplay() {
+      playMelodicPreview('sunset');
+      appendSdkLog('NaviHelper.GeofenceTrigger + AudioFocus.request()', `{ memoryDate: "2025-10-18", track: "노을 지는 해안선" }`);
+      showAppToast('기억 마중: 1년 전 이 길에서 들었던 노래 [노을 지는 해안선]과 당시 가족의 목소리를 재생합니다.');
+    }
+
+    function addDejaVuWaypoint() {
+      appendSdkLog('NaviHelper.addWaypoint()', `{ destination: "헌화로 노을 전망대", lat: 37.791, lng: 128.918 }`);
+      showAppToast('NaviHelper SDK: 1년 전 가족과 들렀던 [헌화로 노을 전망대]를 현재 내비게이션 경유지로 추가했습니다.');
+    }
+
+    // Official Pleos OSD Banner (Auto-dismisses after 2.0 seconds above GNB)
+    let osdTimer = null;
+    function triggerOSD(category, message) {
+      const banner = document.getElementById('pleosOsdBanner');
+      document.getElementById('osdCategoryTag').textContent = category;
+      document.getElementById('osdMessageText').textContent = message;
+      banner.classList.add('visible');
+      clearTimeout(osdTimer);
+      osdTimer = setTimeout(() => banner.classList.remove('visible'), 2000);
+    }
+
+    // Official Pleos Toast Component (24px bottom/side padding, max-width 792px)
+    let appToastTimer = null;
+    function showAppToast(message) {
+      const toast = document.getElementById('pleosAppToast');
+      document.getElementById('pleosToastMessage').textContent = message;
+      toast.classList.add('show');
+      clearTimeout(appToastTimer);
+      appToastTimer = setTimeout(() => toast.classList.remove('show'), 3200);
+    }
+
+    let demoRunning = false;
+    function runAutoScenarioDemo() {
+      if (demoRunning) return;
+      demoRunning = true;
+      setGearState('D');
+      switchView('live');
+      showAppToast('[시연 1/4] 해안절경 구간 진입 — 창밖 풍경과 현재 재생 중인 노래를 경로 위에 갈무리합니다.');
+      setTimeout(() => {
+        captureScenicMoment();
+      }, 1500);
+      setTimeout(() => {
+        showSystemNotification();
+        triggerVoiceMoment();
+      }, 3400);
+      setTimeout(() => {
+        hideSystemNotification();
+        setGearState('P');
+      }, 5600);
+      setTimeout(() => {
+        switchView('dejavu');
+        triggerDejaVuReplay();
+        demoRunning = false;
+      }, 8000);
+    }
+
+    let audioCtx = null;
+    function playMelodicPreview(mood) {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const chords = {
+          ocean: [261.63, 329.63, 392.00, 493.88],
+          sunset: [293.66, 369.99, 440.00, 554.37],
+          family: [329.63, 415.30, 493.88, 659.25],
+          starry: [220.00, 277.18, 329.63, 440.00]
+        };
+        const notes = chords[mood] || chords.ocean;
+        notes.forEach((freq, i) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.09);
+          gain.gain.setValueAtTime(0.001, audioCtx.currentTime + i * 0.09);
+          gain.gain.exponentialRampToValueAtTime(0.05, audioCtx.currentTime + i * 0.09 + 0.05);
+          gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + i * 0.09 + 0.9);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(audioCtx.currentTime + i * 0.09);
+          osc.stop(audioCtx.currentTime + i * 0.09 + 0.95);
+        });
+      } catch (e) {}
+    }
+
+    renderMoments();
+    appendSdkLog('CarPropertyManager.registerCallback()', 'PERF_VEHICLE_SPEED, GEAR_SELECTION, ENV_OUTSIDE_TEMPERATURE (AAOS Alignment)');
+    appendSdkLog('Vehicle.checkWindowCapabilities() + getSeat()', 'Capabilities verified -> 4-Passenger Family Mode Active');
+    appendSdkLog('FusedLocation.isSupported()', 'High-precision route polyline & Photo-Pin mapping active');
+  </script>
+</body>
+</html>
